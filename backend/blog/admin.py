@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from blog.models import Post
+# from blog.models import Scrap
 
 
 @admin.register(Post)
@@ -14,3 +15,8 @@ class PostAdmin(admin.ModelAdmin):
 
     def tag_list(self, obj): #여기서 태크 테이블에 있는 레코드를 가지고 와서 , 로 이어붙이고 있다.
         return u", ".join(o.name for o in obj.tags.all())
+
+
+# @admin.register(Scrap)
+# class Scrap(admin.ModelAdmin):
+#     list_display = ('id', 'user_id', 'news_id')
