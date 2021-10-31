@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-navigation-drawer v-model="drawer" app clipped>
+    <!-- <v-navigation-drawer v-model="drawer" app clipped>
       <v-list dense>
         <v-list-item link>
           <v-list-item-action>
@@ -19,45 +19,36 @@
           </v-list-item-content>
         </v-list-item>
       </v-list>
-    </v-navigation-drawer>
+    </v-navigation-drawer> -->
 
-    <v-app-bar app clipped-left color="indigo" dark>
-      <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-      <v-toolbar-title>Application</v-toolbar-title>
-
-      <v-toolbar-title>Vue.js-Django Web Programming</v-toolbar-title>
+    <v-app-bar app clipped-left color="teal lighten-2" dark>
+      <v-toolbar-title>뉴스와 친해지기</v-toolbar-title>
       <v-spacer></v-spacer>
 
       <v-btn text href="/">HOME</v-btn>
       <v-btn text href="/blog/post/list/">Article</v-btn>
       <v-btn text href="/admin/">Admin</v-btn>
-      <v-btn text>/</v-btn>
-      <v-btn text href="/post_list.html">PostList</v-btn>
-      <v-btn text href="/post_detail.html">PostDetail</v-btn>
       <v-spacer></v-spacer>
 
       <v-menu offset-y left bottom>
         <template v-slot:activator="{ on, attrs }">
           <v-btn text v-bind="attrs" v-on="on">
             <v-icon>mdi-account</v-icon>
-            {{me.username}}
+            {{ me.username }}
             <v-icon>mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
-
-        <!-- 로그인 메뉴를 클릭했을때 클릭이벤트가 상위에있는 v-list 컴포넌트로 전달되도록 stop을 지워줌, 상위에있는 컴포넌트에서 click이벤트가 필요하기 때문-->
-        <!-- 태그의 그룹에 v-if라는 디렉티브를 적용하려면 template로 태그들을 감싼다. -->
         <v-list>
-          <!-- 로그인을 안한경우 유저이름이 익명일때는 v-if 쪽 탬플릿을 랜더링한다. -->
           <template v-if="me.username === 'Anonymous'">
             <v-list-item @click="dialogOpen('login')">
               <v-list-item-title>Login</v-list-item-title>
             </v-list-item>
             <v-list-item>
-              <v-list-item-title @click="dialogOpen('register')">Register</v-list-item-title>
+              <v-list-item-title @click="dialogOpen('register')"
+                >Register</v-list-item-title
+              >
             </v-list-item>
           </template>
-          <!-- 로그인을 했다면 v-else 쪽 탬플릿을 랜더링한다. -->
           <template v-else>
             <v-list-item @click="logout">
               <v-list-item-title>Logout</v-list-item-title>
@@ -65,14 +56,15 @@
             <v-list-item>
               <v-list-item-title @click="dialogOpen('pwdchg')">Password change</v-list-item-title>
             </v-list-item>
+            <v-list-item>
+              <v-list-item-title @click="moveScrap()">Scrap</v-list-item-title>
+            </v-list-item>
           </template>
         </v-list>
       </v-menu>
     </v-app-bar>
 
     <!-- v-dialog 로그인을 위한 팝업창 -->
-    <!-- vue를 이용하여 form을 만들때는 name속성이 중요하다 아예 디비의 컬럼이름과 같게한다고 생각한다. -->
-    <!-- id 속성은 있어도 상관없지만 사용하지 않으므로 없엔다. -->
     <v-dialog v-model="dialog.login" max-width="600">
       <v-card class="elevation-12">
         <v-toolbar dark color="primary">
@@ -137,7 +129,9 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn text color="grey" @click="cancel('register')">Cancel</v-btn>
-          <v-btn color="success" class="mr-5" @click="save('register')">Register</v-btn>
+          <v-btn color="success" class="mr-5" @click="save('register')"
+            >Register</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -188,11 +182,10 @@
 
 <script>
 import axios from "axios";
+import EventBus from './event_bus';
 
-// 이 두 라인의 의미는 axios로 두 요청을 보낼때, csrftoken이라는 이름을가진 쿠키를 읽어서 요청헤더인 X-CSRFToken에 넣어서 보내라는 의미이다.
 axios.defaults.xsrfCookieName = "csrftoken";
 axios.defaults.xsrfHeaderName = "X-CSRFToken";
-
 
 export default {
   data: () => ({
@@ -202,36 +195,39 @@ export default {
       register: false,
       pwdchg: false,
     },
-    me: {username:'Anonymous'},
+    me: { username: "Anonymous" },
   }),
-  created(){
+  created() {
     this.getUserInfo();
   },
+
+  watch: {
+    me(newVal, oldVal){
+      console.log("watch.me()...", newVal, oldVal);
+      EventBus.$emit('me_change', newVal);
+    }
+  },
   methods: {
-    dialogOpen(kind){
+    dialogOpen(kind) {
       console.log("diallogOpen()...", kind);
-      if (kind === "login"){ 
+      if (kind === "login") {
         this.dialog.login = true;
-      }
-      else if (kind === "register") {
+      } else if (kind === "register") {
         this.dialog.register = true;
-      }
-      else if (kind === "pwdchg") {
+      } else if (kind === "pwdchg") {
         this.dialog.pwdchg = true;
       }
     },
 
     cancel(kind) {
       console.log("cancel()...", kind);
-      if (kind === "login"){ 
+      if (kind === "login") {
         this.dialog.login = false;
         this.$refs.loginForm.reset();
-      }
-      else if (kind === "register") {
+      } else if (kind === "register") {
         this.dialog.register = false;
         this.$refs.registerForm.reset();
-      }
-      else if (kind === "pwdchg") {
+      } else if (kind === "pwdchg") {
         this.dialog.pwdchg = false;
         this.$refs.pwdchgForm.reset();
       }
@@ -256,9 +252,9 @@ export default {
 
     login() {
       console.log("login()...");
-      // es6 문법으로 var대신 const사용
       const postData = new FormData(document.getElementById("login-form"));
-      axios.post("/api/login/", postData)
+      axios
+        .post("/api/login/", postData)
         .then((res) => {
           console.log("LOGIN POST RES", res);
           // alert(`user: ${res.data.username} login OK`);
@@ -271,37 +267,37 @@ export default {
     },
     register() {
       console.log("register()...");
-      // es6 문법으로 var대신 const사용
       const postData = new FormData(document.getElementById("register-form"));
-      axios.post("/api/register/", postData)
+      axios
+        .post("/api/register/", postData)
         .then((res) => {
           console.log("REGISTER POST RES", res);
           alert(`user: ${res.data.username} created OK`);
-          // this.me = res.data;
         })
         .catch((err) => {
           console.log("REGISTER POST ERR.RESPONSE", err.response);
           alert("register NOK");
         });
     },
-    logout(){
+    logout() {
       console.log("logout()...");
-      axios.get('/api/logout/')
+      axios
+        .get("/api/logout/")
         .then((res) => {
           console.log("LOGOUT GET RES", res);
           alert(`user: ${this.me.username} logout OK`);
-          this.me = {username:'Anonymous'};
+          this.me = { username: "Anonymous" };
         })
         .catch((err) => {
           console.log("LOGOUT GETT ERR.RESPONSE", err.response);
           alert("LOGOUT NOK");
         });
     },
-    pwdchg(){
+    pwdchg() {
       console.log("pwdchg()...");
-      // es6 문법으로 var대신 const사용
       const postData = new FormData(document.getElementById("pwdchg-form"));
-      axios.post("/api/pwdchg/", postData)
+      axios
+        .post("/api/pwdchg/", postData)
         .then((res) => {
           console.log("PWDCHG GET RES", res);
           alert(`user: ${this.me.username} password change OK`);
@@ -311,18 +307,23 @@ export default {
           alert("PASSWORD CHANGE NOK");
         });
     },
-      getUserInfo(){
-    console.log("getUserInfo()...");
-    axios.get('/api/me/')
-    .then(res =>{
-      console.log("GET USER INFO GET", res);
-      this.me = res.data;
-    })
-    .catch(err =>{
-      console.log("GET USER INFO GET ERR.RESPONSE", err.response);
-      alert(err.response.status + '' + err.response.statusText);
-    });
-  },
+    getUserInfo() {
+      console.log("getUserInfo()...");
+      axios
+        .get("/api/me/")
+        .then((res) => {
+          console.log("GET USER INFO GET", res);
+          this.me = res.data;
+        })
+        .catch((err) => {
+          console.log("GET USER INFO GET ERR.RESPONSE", err.response);
+          alert(err.response.status + "" + err.response.statusText);
+        });
+    },
+    moveScrap(){
+      console.log("moveScrap()...");
+      location.href = `/blog/post/scrap/`;
+    },
   },
 };
 </script>

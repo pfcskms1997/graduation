@@ -49,16 +49,17 @@
 <script>
   import axios from 'axios';
   export default {
-    name: 'HelloWorld',
+    // name: 'HelloWorld',
 
     data: () => ({
       //json 형식의 데이터가 들어갈 수 있도록 빈 변수를 객체 형태롤 만들어준다.
       post: {},
       tagCloud: [],
     }),
+
     created() {
       console.log("created()...");
-      const postId = location.pathname.split('/')[3] || 2;
+      const postId = location.pathname.split('/')[3];
       this.fetchPostDetail(postId);
       this.fetchTagCloud();
     },
@@ -83,11 +84,19 @@
           this.tagCloud = res.data;
           //tag.weight
           //배열의 각 원소에 조작하려면 forEach 매서드를 사용할 수 있다.
+          var maxCount = 0;
           this.tagCloud.forEach(element =>{
             //등호는 2개만 써도 상관없음, 각 웨이트에 따라서 element에 color속성을 생성하여 값을 넣어준다.
-            if(element.weight === 3) element.color = 'green';
-            else if(element.weight ===2) element.color = 'blue-grty';
-            else if(element.weight ===1) element.color = 'grey';
+            if (element.count > maxCount) maxCount = element.count;
+          })
+          console.log("maxcount...", maxCount);
+          this.tagCloud.forEach(element =>{
+            //등호는 2개만 써도 상관없음, 각 웨이트에 따라서 element에 color속성을 생성하여 값을 넣어준다.
+            if(Math.round(element.weight) === 3) element.color = 'green';
+            else if(Math.round(element.weight) === 2) element.color = '#00498C';
+            else if(Math.round(element.weight) === 1) element.color = 'grey';
+
+            if(element.count == maxCount) element.color = '#FF6F6E';
           })
         })
         .catch(err => {

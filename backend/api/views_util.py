@@ -18,23 +18,24 @@ def obj_to_post(obj):
 
     del post['_state']
 
-
     return post
+
 
 def prev_next_post(obj):
     try:
         prevObj = obj.get_prev()
-        prevDict = {'id': prevObj.id, 'title':prevObj.title}
+        prevDict = {'id': prevObj.id, 'title': prevObj.title}
     except obj.DoesNotExist as e:
         prevDict = {}
 
     try:
         nextObj = obj.get_next()
-        nextDict = {'id': nextObj.id, 'title':nextObj.title}
+        nextDict = {'id': nextObj.id, 'title': nextObj.title}
     except obj.DoesNotExist as e:
         nextDict = {}
 
     return prevDict, nextDict
+
 
 def make_tag_cloud(qsTag):
     minCount = min(tag.count for tag in qsTag)
@@ -50,7 +51,7 @@ def make_tag_cloud(qsTag):
         factor = (maxweight - minweight) / (maxCount - minCount)
 
         def func(count):
-            weight = round(minweight + (factor * (count - minCount)))
+            weight = (minweight + (factor * (count - minCount)))
             return weight
 
         return func
@@ -66,5 +67,7 @@ def make_tag_cloud(qsTag):
             'weight': weight,
         })
 
-    return tagList
-
+    if len(tagList) > 30:
+        return tagList[:30]
+    else:
+        return tagList

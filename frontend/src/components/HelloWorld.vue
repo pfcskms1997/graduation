@@ -1,151 +1,172 @@
 <template>
   <v-container>
     <v-row class="text-center">
-      <v-col cols="12">
-        <v-img
-          :src="require('../assets/logo.svg')"
-          class="my-3"
-          contain
-          height="200"
-        />
-      </v-col>
-
-      <v-col class="mb-4">
-        <h1 class="display-2 font-weight-bold mb-3">
-          Welcome to Vuetify (Home)
-        </h1>
-
-        <p class="subheading font-weight-regular">
-          For help and collaboration with other Vuetify developers,
-          <br>please join our online
-          <a
-            href="https://community.vuetifyjs.com"
-            target="_blank"
-          >Discord Community</a>
-        </p>
+      <v-col
+       class="mb-4"
+       cols="7"
+      >
+      <div id="word-cloud"></div>
       </v-col>
 
       <v-col
-        class="mb-5"
-        cols="12"
+       class="mb-4"
+       cols="5"
       >
-        <h2 class="headline font-weight-bold mb-3">
-          What's next?
-        </h2>
-
-        <v-row justify="center">
-          <a
-            v-for="(next, i) in whatsNext"
-            :key="i"
-            :href="next.href"
-            class="subheading mx-3"
-            target="_blank"
-          >
-            {{ next.text }}
-          </a>
-        </v-row>
-      </v-col>
-
-      <v-col
-        class="mb-5"
-        cols="12"
-      >
-        <h2 class="headline font-weight-bold mb-3">
-          Important Links
-        </h2>
-
-        <v-row justify="center">
-          <a
-            v-for="(link, i) in importantLinks"
-            :key="i"
-            :href="link.href"
-            class="subheading mx-3"
-            target="_blank"
-          >
-            {{ link.text }}
-          </a>
-        </v-row>
-      </v-col>
-
-      <v-col
-        class="mb-5"
-        cols="12"
-      >
-        <h2 class="headline font-weight-bold mb-3">
-          Ecosystem
-        </h2>
-
-        <v-row justify="center">
-          <a
-            v-for="(eco, i) in ecosystem"
-            :key="i"
-            :href="eco.href"
-            class="subheading mx-3"
-            target="_blank"
-          >
-            {{ eco.text }}
-          </a>
-        </v-row>
+        <v-data-table
+        :headers="headers"
+        :items="posts"
+        sort-by="name"
+        class="elevation-1"
+        :items-per-page="10"
+        :hide-default-footer="true"
+        @click:row="serverPage"
+        >
+        <template v-slot:top>
+          <v-toolbar flat>
+            <v-toolbar-title
+              >주요 뉴스
+              <span v-if="tagname" class="body-1 font-italic ml-3"
+                >(with {{ tagname }} tagged)</span
+              >
+            </v-toolbar-title>
+          </v-toolbar>
+        </template>
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script>
+import axios from "axios";
+
   export default {
     name: 'HelloWorld',
 
     data: () => ({
-      ecosystem: [
+      posts: [],
+      tagwords: [],
+      tagname: "",
+      headers: [
         {
-          text: 'vuetify-loader',
-          href: 'https://github.com/vuetifyjs/vuetify-loader',
+          text: "ID",
+          align: "start",
+          sortable: false,
+          value: "id",
         },
-        {
-          text: 'github',
-          href: 'https://github.com/vuetifyjs/vuetify',
-        },
-        {
-          text: 'awesome-vuetify',
-          href: 'https://github.com/vuetifyjs/awesome-vuetify',
-        },
-      ],
-      importantLinks: [
-        {
-          text: 'Documentation',
-          href: 'https://vuetifyjs.com',
-        },
-        {
-          text: 'Chat',
-          href: 'https://community.vuetifyjs.com',
-        },
-        {
-          text: 'Made with Vuetify',
-          href: 'https://madewithvuejs.com/vuetify',
-        },
-        {
-          text: 'Twitter',
-          href: 'https://twitter.com/vuetifyjs',
-        },
-        {
-          text: 'Articles',
-          href: 'https://medium.com/vuetify',
-        },
-      ],
-      whatsNext: [
-        {
-          text: 'Explore components',
-          href: 'https://vuetifyjs.com/components/api-explorer',
-        },
-        {
-          text: 'Select a layout',
-          href: 'https://vuetifyjs.com/getting-started/pre-made-layouts',
-        },
-        {
-          text: 'Frequently Asked Questions',
-          href: 'https://vuetifyjs.com/getting-started/frequently-asked-questions',
-        },
+        { text: "제 목", value: "title" },
+        { text: "요 약", value: "description" },
+        { text: "수정일", value: "modify_dt" },
+        { text: "작성자", value: "owner" },
+        { text: "Actions", value: "actions", sortable: false },
       ],
     }),
+    created() {
+      this.fetchTags();
+    },
+    methods: {
+      fetchPostList() {
+        console.log("fetchPostList()...", this.tagwords);
+
+        const max = this.tagwords.reduce(function(prev, current) {
+          return (prev.count > current.count) ? prev : current
+        })
+        console.log("find max count...", this.tagname);
+        this.tagname = max.name;
+
+        let getUrl = "";
+        if (this.tagname) getUrl = `/api/post/list/?tagname=${this.tagname}`;
+        else getUrl = "/api/post/list";
+
+        axios
+        .get(getUrl)
+        .then((res) => {
+          console.log("POST LIST GET RES!!", res);
+          this.posts = res.data;
+        })
+        .catch((err) => {
+          console.log("POST LIST ERR RES!!", err.response);
+          alert(err.response.status + "" + err.response.statusText);
+        });
+      },
+      serverPage(item) {
+        console.log("serverPage()...", item);
+        location.href = `/blog/post/${item.id}`;
+      },
+
+      
+
+      fetchTags() {
+        console.log("fetchTags()..");
+        axios.get('/api/tag/cloud/')
+        .then(res => {
+          console.log("POST CLOUD GET RES", res);
+          this.tagwords = res.data;
+          //tag.weight
+          //배열의 각 원소에 조작하려면 forEach 매서드를 사용할 수 있다.
+          this.fetchPostList();
+          this.genTagcloud();
+        })
+        .catch(err => {
+          console.log("TAG CLOUD GET ERR.RESPONSE", err.response);
+          alert(err.response.status+ ''+ err.response.statusText);
+        });
+      },
+      genTagcloud() {
+        console.log("genTagcloud()..", this.tagwords);
+        const cloud = require('d3-cloud');
+        cloud()
+          .words(this.tagwords)
+          .padding(5)
+          .font('Impact')
+          .rotate(0)
+          .text((d) => d.name)
+          .fontSize(function(d) {return 10 + d.count * 10;})
+          .on('end', this.end)
+          .spiral('archimedean')
+          .start()
+          .stop()
+      },
+      end(words) {
+        console.log("end function...", words);
+        const d3 = require('d3');
+        const width = 800;
+        const height = 800;
+        d3.select('#word-cloud')
+          .append('svg')
+          .attr('width', width)
+          .attr('height', height)
+          .style('background', 'white')
+          .append('g')
+          .attr('transform', 'translate(' + width / 2 + ',' + height / 2 + ')') // g를 중심에서 단어들을 그리기 때문에 g를 svg 중심으로 이동
+          .selectAll('text')
+          .data(words)
+          .enter()
+          .append('text')
+          .style('font-size', (d) => {
+            return 10 + d.count * 10 + "px";
+          })
+          .style('font-family', 'Impact')
+          .style('opacity', 0.8)
+          .attr('text-anchor', 'middle')
+          .attr('transform', (d) => {
+            return 'translate(' + [d.x, d.y] + ')rotate(' + d.rotate + ')';
+          })
+          .text((d) => d.name)        
+          .on("click", function() {
+              const tagname11 = d3.select(this).text();
+              serverPagewithTag(tagname11);
+            })
+          function serverPagewithTag(tagname) {
+            console.log("serverPagewithTag()...", tagname);
+            location.href = `/blog/post/list/?tagname=${tagname}`;
+          }
+      },
+      
+    }
   }
 </script>
+
+<style scoped>
+
+</style>
+

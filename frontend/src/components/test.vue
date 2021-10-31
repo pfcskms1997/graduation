@@ -5,7 +5,7 @@
       <v-col cols="12" lg="10">
         <v-card class="pa-2" outlined tile>
           <h1>Post title here</h1>
-          <p>test</p>
+          <p>2020-07-10, written by shkim</p>
         </v-card>
       </v-col>
     </v-row>

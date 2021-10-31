@@ -10,11 +10,16 @@
   "dependencies": {
     "axios": "^0.22.0",
     "core-js": "^3.6.5",
+    "d3": "^7.1.1",
+    "d3-cloud": "^1.2.5",
+    "d3-dispatch": "^3.0.1",
     "material-design-icons-iconfont": "^6.1.0",
     "vue": "^2.6.11",
     "vuetify": "^2.4.0"
   },
   "devDependencies": {
+    "@types/d3": "^7.1.0",
+    "@types/d3-cloud": "^1.2.5",
     "@vue/cli-plugin-babel": "~4.5.0",
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-service": "~4.5.0",
