@@ -9,7 +9,8 @@ from django.views.decorators.cache import never_cache
 from django.views.generic.detail import BaseDetailView
 from django.views.generic.edit import BaseCreateView, BaseUpdateView, BaseDeleteView
 from django.views.generic.list import BaseListView
-from taggit.models import Tag
+#from taggit.models import Tag
+from blog.models import Topics
 
 from blog.models import Post
 from accounts.forms import MyUserCreationForm
@@ -45,7 +46,8 @@ class ApiPostDV(BaseDetailView):
 
 class ApiTagCloudLV(BaseListView):
     # model = Tag
-    queryset = Tag.objects.annotate(count=Count('post'))
+    #queryset = Tag.objects.annotate(count=Count('post'))
+    queryset = Topics.objects.annotate(count=Count('post'))
 
     def render_to_response(self, context, **response_kwargs):
         qs = context['object_list']
